@@ -27,6 +27,7 @@ const (
 // Run executes an Intcode program.
 func Run(program []int, reader io.Reader, writer io.Writer) error {
 	iptr := 0
+	scanner := bufio.NewScanner(reader)
 
 	for {
 		opcode, paramModes, err := instruction(program[iptr])
@@ -54,7 +55,7 @@ func Run(program []int, reader io.Reader, writer io.Writer) error {
 		case opcodeInput:
 			nbParams := 1
 			target := program[iptr+1]
-			value, err := readInput(reader)
+			value, err := readInput(scanner)
 			if err != nil {
 				return err
 			}
@@ -155,13 +156,12 @@ func paramValue(program []int, mode int, value int) int {
 	return program[value]
 }
 
-func readInput(r io.Reader) (int, error) {
-	scanner := bufio.NewScanner(r)
-	if ok := scanner.Scan(); !ok {
-		return 0, scanner.Err()
+func readInput(s *bufio.Scanner) (int, error) {
+	if ok := s.Scan(); !ok {
+		return 0, s.Err()
 	}
 
-	scanned := scanner.Text()
+	scanned := s.Text()
 	value, err := strconv.Atoi(scanned)
 	if err != nil {
 		return 0, nil
