@@ -3,7 +3,7 @@ package diagnostic
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"strconv"
 )
 
@@ -25,7 +25,7 @@ const (
 )
 
 // Run executes an Intcode program.
-func Run(program []int) error {
+func Run(program []int, reader io.Reader, writer io.Writer) error {
 	iptr := 0
 
 	for {
@@ -54,7 +54,7 @@ func Run(program []int) error {
 		case opcodeInput:
 			nbParams := 1
 			target := program[iptr+1]
-			value, err := readInput()
+			value, err := readInput(reader)
 			if err != nil {
 				return err
 			}
@@ -64,7 +64,7 @@ func Run(program []int) error {
 			nbParams := 1
 			paramModes = fillParamModes(paramModes, nbParams)
 			value := paramValue(program, paramModes[0], program[iptr+1])
-			fmt.Printf("output: %d\n", value)
+			fmt.Fprintf(writer, "%d\n", value)
 			iptr += nbParams + 1
 		case opcodeJumpIfTrue, opcodeJumpIfFalse:
 			nbParams := 2
@@ -155,9 +155,8 @@ func paramValue(program []int, mode int, value int) int {
 	return program[value]
 }
 
-func readInput() (int, error) {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("> ")
+func readInput(r io.Reader) (int, error) {
+	scanner := bufio.NewScanner(r)
 	if ok := scanner.Scan(); !ok {
 		return 0, scanner.Err()
 	}

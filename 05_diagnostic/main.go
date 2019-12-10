@@ -26,7 +26,7 @@ func main() {
 	program, err := diagnostic.ParseInts(strings.TrimSpace(string(programBytes)))
 	check(err)
 
-	err = diagnostic.Run(program)
+	err = diagnostic.Run(program, os.Stdin, os.Stdout)
 	check(err)
 }
 
